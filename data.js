@@ -1,7 +1,8 @@
-// LN + Manga Tracker data - tự động update bởi Claude weekly
+// LN + Manga + WN Tracker data - tự động update bởi remote agent weekly
 // Last updated: 2026-05-24
-// Format: { id, title, titleJp, publisher, format: "LN"|"Manga", volume, status, genres, nextDate, price, sourceUrl, notes, addedAt }
-// Scope: cả LN VÀ Manga, cả bộ cũ continuing VÀ bộ mới debut (vol 1)
+// Format: { id, title, titleJp, publisher, format: "LN"|"Manga"|"WN", volume, status, genres, nextDate, price, sourceUrl, coverUrl, notes, addedAt }
+// QUAN TRỌNG: coverUrl là ảnh bìa - dùng để đăng TikTok. Bắt buộc có nếu fetch được.
+// Scope: cả LN/Manga/WN, cả bộ cũ continuing VÀ bộ mới debut (vol 1)
 
 window.LN_DATA = [
   // ===== Wings Books / Kim Đồng - May 2026 schedule =====
@@ -46,6 +47,7 @@ window.LN_DATA = [
     genres: ["romance", "harem", "supernatural"],
     nextDate: "[verify]", price: 158000,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2026/03/Bia-DAL-Another-Route.png",
     notes: "Spin-off Date A Live.", addedAt: "2026-05-24"
   },
   {
@@ -55,6 +57,7 @@ window.LN_DATA = [
     genres: ["yuri", "fantasy", "romance"],
     nextDate: "[verify]", price: 168000,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2026/02/Bia-ngoai-cong-chua-chuyen-sinh.jpg",
     notes: "Yuri fantasy nổi tiếng — content TikTok ngách yuri rất ăn.", addedAt: "2026-05-24"
   },
   {
@@ -64,6 +67,7 @@ window.LN_DATA = [
     genres: ["fantasy", "slice-of-life", "drama"],
     nextDate: "[verify]", price: 148000,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2025/06/Bia-Elaina-16.png",
     notes: "Du ký phù thủy. Có yếu tố yuri nhẹ.", addedAt: "2026-05-24"
   },
   {
@@ -73,6 +77,7 @@ window.LN_DATA = [
     genres: ["yuri", "romance", "fantasy", "isekai"],
     nextDate: "[verify]", price: 145000,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2025/02/Bia-TYNPD-4-ban-thuong.jpg",
     notes: "Yuri isekai, fanbase mạnh.", addedAt: "2026-05-24"
   },
   {
@@ -82,6 +87,7 @@ window.LN_DATA = [
     genres: ["romance", "comedy", "slice-of-life"],
     nextDate: "[verify]", price: 118000,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2025/02/Bia-Co-nang-Otaku-nha-toi-5-1.jpg",
     notes: "Romcom otaku x gal.", addedAt: "2026-05-24"
   },
   {
@@ -98,6 +104,7 @@ window.LN_DATA = [
     genres: ["romance", "school", "slice-of-life"],
     nextDate: "[verify]", price: 0,
     sourceUrl: "https://amak.vn/en/book_cat/light-novel/",
+    coverUrl: "https://amak.vn/wp-content/uploads/2024/09/Bia-Bao-mau-2.jpg",
     notes: "Giá chưa công bố.", addedAt: "2026-05-24"
   },
 
@@ -108,6 +115,7 @@ window.LN_DATA = [
     genres: ["romance", "drama", "military", "sci-fi"],
     nextDate: "[verify]", price: 113100,
     sourceUrl: "https://ipm.vn/collections/light-novel",
+    coverUrl: "https://cdn.hstatic.net/products/200000287623/86_alter_2_bia_1_e810bbbcef924a40b634cef338b8a51b_large.jpg",
     notes: "Bộ romance + chiến tranh. Anime nổi tiếng.", addedAt: "2026-05-24"
   },
   {
@@ -135,6 +143,7 @@ window.LN_DATA = [
     genres: ["romance", "slice-of-life", "school"],
     nextDate: "[verify]",
     sourceUrl: "https://nxbkimdong.com.vn/tap-le-thien-su-nha-ben-light-novel",
+    coverUrl: "https://bizweb.dktcdn.net/thumb/large/100/576/749/products/1-42582120acfe464ca2c1790d79926754-e341c6e1-e5f1-4f59-909e-c857f8a45414.jpg",
     notes: "Flagship romance của Wingbooks. JP đã >10 vol, VN đang ra. Bộ HOT nhất để làm content.", addedAt: "2026-05-24"
   },
   {
@@ -176,6 +185,7 @@ window.LN_DATA = [
     genres: ["romance", "fantasy", "drama"],
     nextDate: "[verify]", price: 159200,
     sourceUrl: "https://nhasachthaiha.vn/collections/light-novel",
+    coverUrl: "https://cdn.hstatic.net/products/1000217031/b_a_3aade25f7d7a4ab9a0c941bc8cb212a0_medium.jpg",
     notes: "Romance fantasy dark. Anime đã ra. 💡 Bộ romance ít người biết → easy viral.",
     addedAt: "2026-05-24"
   },
@@ -187,6 +197,7 @@ window.LN_DATA = [
     genres: ["yuri-hint", "school", "drama", "action"],
     nextDate: "[verify]", price: 143200,
     sourceUrl: "https://nhasachthaiha.vn/collections/light-novel",
+    coverUrl: "https://cdn.hstatic.net/products/1000217031/b_a_1_spy_9_-_d_c_bi_t_ca8757d4bcc9445a969c8258708a3e7e_medium.jpg",
     notes: "Bản đặc biệt. Spy thriller — có yuri hint giữa các nữ chính (Klaus's team), fanbase ship nhiều.",
     addedAt: "2026-05-24"
   },

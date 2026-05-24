@@ -18,8 +18,14 @@ You are updating the LN/Manga/WN tracker repository. The repo has been cloned fo
    - If genre matches `genreDeprioritize` (ecchi, harem, reverse-harem): KEEP but tag the genre, don't skip
    - `titleJp` must be **romanji** (Hepburn). If only kanji available, romanize it. Never store kanji.
    - For WN sources (Syosetu/Kakuyomu): prioritize JP origin only, no Trung/Hàn
-5. **Dedupe**: compare new entries against existing `window.LN_DATA` by `id`. Skip if id exists.
-6. **Append** new entries to `data.js` (don't delete old). Format:
+5. **CRITICAL — extract coverUrl**: với mỗi release, fetch URL ảnh BÌA (cover art). User dùng tracker chủ yếu để LẤY ẢNH đăng TikTok (content text-only ngán). Nếu không có coverUrl, entry gần như vô dụng. Cách lấy:
+   - Catalog page (IPM/AMAK/Thái Hà/Nhã Nam): mỗi product card có `<img src="...">` — extract URL ảnh chính
+   - Schedule page (Kim Đồng): có thể không có ảnh trực tiếp, follow link vào product page hoặc search
+   - Yen Press: product detail page có cover
+   - Nếu source page không có cover, làm WebSearch `"<title>" cover art light novel` hoặc `"<title>" book cover` và lấy URL ảnh đầu (ưu tiên anilist.co, myanimelist.net, vndb.org, publisher domain)
+   - Ưu tiên ảnh chất lượng cao (≥400px width)
+6. **Dedupe**: compare new entries against existing `window.LN_DATA` by `id`. Skip if id exists.
+7. **Append** new entries to `data.js` (don't delete old). Format:
    ```js
    {
      id: "<kebab-case-title-vol>",
@@ -33,14 +39,15 @@ You are updating the LN/Manga/WN tracker repository. The repo has been cloned fo
      nextDate: "YYYY-MM-DD" | "[verify]" | "—",
      price: <number, 0 nếu không có>,
      sourceUrl: "<URL>",
+     coverUrl: "<URL ảnh bìa - BẮT BUỘC nếu có thể fetch>",
      notes: "<short note in Vietnamese>",
      addedAt: "<today YYYY-MM-DD>"
    }
    ```
-7. **Update** comment on line 2 of `data.js`: `// Last updated: YYYY-MM-DD`
-8. **Commit**: `git add -A && git commit -m "Weekly update YYYY-MM-DD: +N entries"`
-9. **Push**: `git push origin main`
-10. **Report** (last message): bao nhiêu entry mới mỗi publisher, source nào fail, có entry nào skip do rules
+8. **Update** comment on line 2 of `data.js`: `// Last updated: YYYY-MM-DD`
+9. **Commit**: `git add -A && git commit -m "Weekly update YYYY-MM-DD: +N entries"`
+10. **Push**: `git push origin main`
+11. **Report** (last message): bao nhiêu entry mới mỗi publisher, source nào fail, có entry nào skip do rules, **bao nhiêu entry có coverUrl vs không có**
 
 ## Critical
 

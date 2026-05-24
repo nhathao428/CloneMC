@@ -8,8 +8,13 @@
 <script src="data.js"></script>
 <style>
   body { font-family: 'Segoe UI', system-ui, sans-serif; }
-  .card { transition: all 0.15s ease; }
+  .card { transition: all 0.15s ease; overflow: hidden; }
   .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(236,72,153,0.15); }
+  .cover-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #18181b; border-radius: 8px; cursor: pointer; }
+  .cover-img:hover { opacity: 0.85; }
+  .cover-placeholder { width: 100%; aspect-ratio: 2/3; background: linear-gradient(135deg, #27272a, #18181b); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #52525b; font-size: 11px; text-align: center; padding: 8px; }
+  .card-flex { display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
+  @media (min-width: 768px) { .card-flex { grid-template-columns: 140px 1fr; } }
   textarea { resize: vertical; }
   .badge-wing { background: #f59e0b; }
   .badge-ipm { background: #3b82f6; }
@@ -99,6 +104,7 @@
       <input id="f-nextDate" placeholder="Ngày phát hành (vd: 2026-06-15)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
       <input id="f-genres" placeholder="Genres (cách , vd: romance,yuri)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2">
       <input id="f-sourceUrl" placeholder="Link nguồn (optional)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2">
+      <input id="f-coverUrl" placeholder="URL ảnh bìa (BẮT BUỘC để đăng TikTok)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2">
       <textarea id="f-notes" placeholder="Ghi chú..." rows="2" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2"></textarea>
     </div>
     <div class="flex gap-2 mt-3">
@@ -225,47 +231,62 @@ function renderCards() {
   }
   document.getElementById("cards").innerHTML = filtered.map(d => `
     <div class="card bg-zinc-800 rounded-xl p-4 border border-zinc-700">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <div class="flex-1">
-          <div class="flex items-center gap-2 mb-1 flex-wrap">
-            <span class="${d._source==='auto'?'auto-tag':'manual-tag'}">${d._source.toUpperCase()}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded ${(d.format||'LN')==='Manga'?'bg-purple-900 text-purple-200':(d.format||'LN')==='WN'?'bg-sky-900 text-sky-200':'bg-emerald-900 text-emerald-200'}">${d.format||'LN'}</span>
-            ${d.volume ? `<span class="text-xs text-zinc-500">Vol ${d.volume}</span>` : ""}
-            ${WARN_GENRES.filter(w => (d.genres||[]).includes(w)).map(w => `<span class="text-xs px-1.5 py-0.5 rounded bg-orange-900 text-orange-200" title="Hạn chế">⚠ ${w}</span>`).join("")}
-          </div>
-          <h3 class="font-bold text-lg leading-tight">${d.title}</h3>
-          ${d.titleJp ? `<div class="text-xs text-zinc-500 italic">${d.titleJp}</div>` : ""}
-        </div>
-        <span class="${pubBadge(d.publisher)} text-white text-xs px-2 py-1 rounded font-medium whitespace-nowrap">${d.publisher}</span>
-      </div>
-
-      <div class="flex flex-wrap gap-1.5 mb-2">
-        <span class="${statusColor(d.status)} text-xs px-2 py-0.5 rounded">${statusLabel(d.status)}</span>
-        ${(d.genres||[]).map(g => `<span class="bg-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded">${g}</span>`).join("")}
-      </div>
-
-      <div class="text-sm text-zinc-300 space-y-1">
+      <div class="card-flex">
         <div>
-          <span class="text-zinc-500">Phát hành:</span>
-          <span class="text-pink-300 font-medium">${d.nextDate || "?"}</span>
-          ${fmtPrice(d.price) ? `<span class="text-zinc-500 ml-2">${fmtPrice(d.price)}</span>` : ""}
+          ${d.coverUrl
+            ? `<img src="${d.coverUrl}" class="cover-img" alt="${d.title}" onclick="openCover('${d.coverUrl}')" loading="lazy" onerror="this.outerHTML='<div class=&quot;cover-placeholder&quot;>Cover load lỗi</div>'">`
+            : `<div class="cover-placeholder">Chưa có cover<br><span class="text-pink-400 text-[10px] mt-1 cursor-pointer hover:underline" onclick="searchCover('${d.title.replace(/'/g,"\\'")}')">🔍 search</span></div>`
+          }
+          ${d.coverUrl ? `<div class="flex gap-1 mt-2">
+            <button onclick="copyCover('${d.coverUrl}')" class="flex-1 text-[10px] bg-pink-700 hover:bg-pink-600 text-white px-2 py-1 rounded" title="Copy URL ảnh">📋 URL</button>
+            <a href="${d.coverUrl}" download="${d.id}.jpg" target="_blank" class="flex-1 text-[10px] bg-zinc-700 hover:bg-zinc-600 text-zinc-200 px-2 py-1 rounded text-center" title="Tải về">⬇ DL</a>
+          </div>` : ""}
         </div>
-        ${d.notes ? `<div class="text-xs text-zinc-400 mt-2 italic">${d.notes}</div>` : ""}
-        ${d.sourceUrl ? `<a href="${d.sourceUrl}" target="_blank" class="text-xs text-blue-400 hover:underline">→ Nguồn</a>` : ""}
-      </div>
 
-      <details class="mt-3">
-        <summary class="text-xs text-pink-400 hover:text-pink-300 font-medium">💡 Idea TikTok</summary>
-        <textarea
-          onchange="saveIdea('${d.id}', this.value)"
-          placeholder="Hook · angle · sound · hashtag..."
-          class="w-full mt-2 bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-200"
-          rows="3">${(ideas[d.id] || "").replace(/</g, "&lt;")}</textarea>
-        ${d._source === 'auto' ? `<button onclick="genCaption('${d.id}')" class="mt-2 text-xs bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded">📋 Copy caption Aitoearn</button>` : ""}
-      </details>
+        <div class="min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <span class="${d._source==='auto'?'auto-tag':'manual-tag'}">${d._source.toUpperCase()}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded ${(d.format||'LN')==='Manga'?'bg-purple-900 text-purple-200':(d.format||'LN')==='WN'?'bg-sky-900 text-sky-200':'bg-emerald-900 text-emerald-200'}">${d.format||'LN'}</span>
+                ${d.volume ? `<span class="text-xs text-zinc-500">Vol ${d.volume}</span>` : ""}
+                ${WARN_GENRES.filter(w => (d.genres||[]).includes(w)).map(w => `<span class="text-xs px-1.5 py-0.5 rounded bg-orange-900 text-orange-200" title="Hạn chế">⚠ ${w}</span>`).join("")}
+              </div>
+              <h3 class="font-bold text-base leading-tight">${d.title}</h3>
+              ${d.titleJp ? `<div class="text-xs text-zinc-500 italic truncate">${d.titleJp}</div>` : ""}
+            </div>
+            <span class="${pubBadge(d.publisher)} text-white text-xs px-2 py-1 rounded font-medium whitespace-nowrap">${d.publisher}</span>
+          </div>
 
-      <div class="flex gap-2 mt-3 text-xs">
-        ${d._source === 'manual' ? `<button onclick="deleteManual('${d.id}')" class="text-zinc-400 hover:text-red-400">🗑 Xoá</button>` : `<button onclick="hideAuto('${d.id}')" class="text-zinc-400 hover:text-red-400">🙈 Ẩn</button>`}
+          <div class="flex flex-wrap gap-1 mb-2">
+            <span class="${statusColor(d.status)} text-xs px-2 py-0.5 rounded">${statusLabel(d.status)}</span>
+            ${(d.genres||[]).map(g => `<span class="bg-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded">${g}</span>`).join("")}
+          </div>
+
+          <div class="text-sm text-zinc-300 space-y-1">
+            <div class="text-xs">
+              <span class="text-zinc-500">Phát hành:</span>
+              <span class="text-pink-300 font-medium">${d.nextDate || "?"}</span>
+              ${fmtPrice(d.price) ? `<span class="text-zinc-500 ml-2">${fmtPrice(d.price)}</span>` : ""}
+            </div>
+            ${d.notes ? `<div class="text-xs text-zinc-400 mt-1 italic line-clamp-2">${d.notes}</div>` : ""}
+            ${d.sourceUrl ? `<a href="${d.sourceUrl}" target="_blank" class="text-xs text-blue-400 hover:underline">→ Nguồn</a>` : ""}
+          </div>
+
+          <details class="mt-2">
+            <summary class="text-xs text-pink-400 hover:text-pink-300 font-medium">💡 Idea TikTok</summary>
+            <textarea
+              onchange="saveIdea('${d.id}', this.value)"
+              placeholder="Hook · angle · sound · hashtag..."
+              class="w-full mt-2 bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-200"
+              rows="3">${(ideas[d.id] || "").replace(/</g, "&lt;")}</textarea>
+            ${d._source === 'auto' ? `<button onclick="genCaption('${d.id}')" class="mt-2 text-xs bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded">📋 Copy caption Aitoearn</button>` : ""}
+          </details>
+
+          <div class="flex gap-2 mt-2 text-xs">
+            ${d._source === 'manual' ? `<button onclick="deleteManual('${d.id}')" class="text-zinc-400 hover:text-red-400">🗑 Xoá</button>` : `<button onclick="hideAuto('${d.id}')" class="text-zinc-400 hover:text-red-400">🙈 Ẩn</button>`}
+          </div>
+        </div>
       </div>
     </div>
   `).join("");
@@ -273,6 +294,22 @@ function renderCards() {
 
 // ============ ACTIONS ============
 function saveIdea(id, val) { ideas[id] = val; save(); }
+
+function openCover(url) { window.open(url, "_blank"); }
+
+function copyCover(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const toast = document.createElement("div");
+    toast.textContent = "✓ Đã copy URL cover";
+    toast.className = "fixed top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded shadow-lg z-50 text-sm";
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 1800);
+  });
+}
+
+function searchCover(title) {
+  window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(title + " light novel cover")}`, "_blank");
+}
 
 function genCaption(id) {
   const d = allData().find(x => x.id === id); if (!d) return;
@@ -298,12 +335,12 @@ function addEntry() {
     format: get("f-format") || "LN",
     volume: get("f-volume"), nextDate: get("f-nextDate"),
     genres: get("f-genres").split(",").map(s => s.trim()).filter(Boolean),
-    sourceUrl: get("f-sourceUrl"), notes: get("f-notes"),
+    sourceUrl: get("f-sourceUrl"), coverUrl: get("f-coverUrl"), notes: get("f-notes"),
     addedAt: new Date().toISOString().slice(0,10), _source: "manual"
   };
   manualData.unshift(entry);
   save();
-  ["f-title","f-titleJp","f-volume","f-nextDate","f-genres","f-sourceUrl","f-notes"].forEach(i => document.getElementById(i).value = "");
+  ["f-title","f-titleJp","f-volume","f-nextDate","f-genres","f-sourceUrl","f-coverUrl","f-notes"].forEach(i => document.getElementById(i).value = "");
   toggleAddForm();
   renderAll();
 }
