@@ -1,0 +1,113 @@
+{
+  "_comment": "Sources Claude fetch mỗi tuần để update data.js. Thêm/xoá URL ở đây.",
+  "_lastUpdated": "2026-05-24",
+  "sources": [
+    {
+      "publisher": "Wingbooks",
+      "type": "monthly_schedule",
+      "urlPattern": "https://nxbkimdong.com.vn/lich-phat-hanh-sach-dinh-ki-thang-{M}-{YYYY}",
+      "fallbackUrl": "https://nxbkimdong.com.vn/blogs/lich-phat-hanh-sach-dinh-ky",
+      "notes": "Kim Đồng đăng lịch định kỳ hàng tháng. URL pattern: tháng-{1-12}-{năm}. Đôi khi gộp 2 tháng (vd: thang-1-2-2026). Fallback URL là trang index list các tháng."
+    },
+    {
+      "publisher": "IPM",
+      "type": "catalog",
+      "url": "https://ipm.vn/collections/light-novel",
+      "notes": "IPM catalog LN - sort theo 'Mới nhất' để lấy mới ra. Có thể có pagination."
+    },
+    {
+      "publisher": "AMAK",
+      "type": "catalog",
+      "url": "https://amak.vn/en/book_cat/light-novel/",
+      "notes": "AMAK English catalog. Tên thường giữ tiếng Nhật."
+    },
+    {
+      "publisher": "Thái Hà",
+      "type": "catalog",
+      "url": "https://nhasachthaiha.vn/collections/light-novel",
+      "facebook": "https://www.facebook.com/hikarilightnovel/",
+      "notes": "Thái Hà = Hikari Light Novel. FB block scraping, chỉ dùng website."
+    },
+    {
+      "publisher": "Nhã Nam",
+      "type": "catalog",
+      "url": "https://nhanam.vn/light-novel",
+      "notes": "Nhã Nam có LN nhưng cũng nhiều general lit, chỉ filter LN tag."
+    },
+    {
+      "publisher": "Tsuki",
+      "type": "catalog",
+      "url": "https://www.fahasa.com/tsuki-light-novel",
+      "notes": "Tsuki LightNovel (AZ Group). Không có website chính thức tiện, dùng Fahasa làm proxy."
+    },
+    {
+      "publisher": "Yen Press",
+      "type": "catalog",
+      "url": "https://yenpress.com/calendar",
+      "region": "JP-EN",
+      "notes": "Yen Press (US licensor of JP LN). Calendar EN. Lấy 'Light Novel' format, skip manga. Prompt phải nói rõ tháng để LLM extract đúng slice."
+    },
+    {
+      "publisher": "Yuri Aggregator",
+      "type": "aggregator",
+      "url": "https://yuri.guide/upcoming",
+      "region": "JP-EN",
+      "notes": "Aggregator chuyên yuri (Yen Press, Seven Seas, Tokyopop releases). Mỗi entry có publisher field — gán publisher theo nguồn thật, không phải yuri.guide."
+    },
+    {
+      "publisher": "Syosetu",
+      "type": "wn_ranking",
+      "url": "https://yomou.syosetu.com/rank/genretop/genre/4/",
+      "region": "JP",
+      "format": "WN",
+      "notes": "Syosetu romance genre top. Site trả KANJI titles — phải convert sang romanji trong prompt (LLM Hepburn). Bỏ entries có 短編 (oneshot quá ngắn) trừ khi nổi bật. ƯU TIÊN: JP origin WN, romance/comedy/yuri.",
+      "limitation": "Titles in kanji; need LLM to romanize. Many entries are amateur/oneshot, hard to filter quality."
+    },
+    {
+      "publisher": "Kakuyomu",
+      "type": "wn_ranking",
+      "url": "https://kakuyomu.jp",
+      "region": "JP",
+      "format": "WN",
+      "notes": "Kadokawa's WN platform — bộ hot trên đây dễ thành LN của Kadokawa. URL ranking page tự tìm (404 nhiều).",
+      "limitation": "URL không stable, dễ 404. Cần search lại trước mỗi lần fetch."
+    }
+  ],
+  "_unscrapeable": [
+    {"name": "Seven Seas", "url": "https://sevenseasentertainment.com/upcoming-releases/", "reason": "HTTP 403"},
+    {"name": "J-Novel Club", "url": "https://j-novel.club/calendar", "reason": "JS-rendered, empty HTML"},
+    {"name": "LNRelease", "url": "https://lnrelease.github.io/", "reason": "JS-rendered, empty HTML"},
+    {"name": "Facebook publisher pages", "url": "—", "reason": "Meta block scraping, all returned truncated/empty"},
+    {"name": "Novel Updates", "url": "https://www.novelupdates.com/", "reason": "HTTP 403, Cloudflare block"},
+    {"name": "Kakuyomu rankings", "url": "https://kakuyomu.jp/rankings/...", "reason": "404 trên nhiều URL, JS-rendered"}
+  ],
+  "requireRomanceOrYuriHint": true,
+  "_requireNote": "MỌI entry PHẢI có ÍT NHẤT MỘT trong: 'romance', 'yuri', 'yuri-hint'. Bộ có yuri subtext/undertones cũng OK dù không tag yuri thẳng. Bộ chỉ fantasy/military/action mà không có romance/yuri-hint → KHÔNG add.",
+  "genreWhitelist": ["romance", "yuri", "yuri-hint", "school", "slice-of-life", "comedy", "drama"],
+  "genreBlacklist": ["bl", "boylove", "yaoi", "webtoon", "manhwa", "manhua"],
+  "_blacklistNote": "webtoon/manhwa/manhua (Hàn/Trung vertical-scroll): SKIP. Art style không hợp content TikTok. Chỉ track manga Nhật.",
+  "genreDeprioritize": ["ecchi", "harem", "reverse-harem"],
+  "_deprioritizeNote": "ecchi + harem + reverse-harem: vẫn add nếu romance core + có thêm primary genre khác, NHƯNG phải tag trong genres để UI show warning ⚠. KHÔNG add bộ harem-only / ecchi-only (chỉ harem/ecchi mà thiếu romance feel).",
+  "titleBlacklist": [
+    {"title": "Classroom of the Elite", "alias": ["Chào Mừng Đến Lớp Học Đề Cao Thực Lực", "Youkoso Jitsuryoku Shijou Shugi", "COTE"], "reason": "Bộ này không có người đu nữa - chất lượng kém, không làm content TikTok được"},
+    {"title": "Mushoku Tensei", "alias": ["Mushoku Tensei - Isekai Ittara Honki Dasu", "Jobless Reincarnation"], "reason": "Trash novel - không add (cả LN/Manga/WN)"}
+  ],
+  "primaryGenres": ["romance", "yuri", "school", "slice-of-life"],
+  "_primaryGenresNote": "Romance là baseline bắt buộc. Yuri/school/slice-of-life là các genre ưu tiên phụ thêm. Comedy/drama OK nhưng không primary.",
+  "scope": {
+    "formats": ["LN", "Manga", "WN"],
+    "includeNewDebuts": true,
+    "includeContinuing": true,
+    "regionPriority": ["JP", "JP-EN", "VN"],
+    "_note": "Track LN + Manga + WN. Cả debut + continuing. ƯU TIÊN ORIGIN NHẬT (không track WN Trung/Hàn). VN nxb là target chính (vì user là VN), JP/JP-EN là leading indicator."
+  },
+  "ageCutoff": {
+    "skipIfJpBefore": 2016,
+    "appliesWhen": "VN newly licensed (vol 1-5 VN, JP đã hoàn thành hoặc xuất bản từ trước 2016)",
+    "_note": "Bộ JP gốc trước 2016 + VN MỚI thầu (vol đầu) → KHÔNG add. Lý do: cũ, ai cũng đọc rồi, content TikTok không kéo view. CHỈ áp dụng khi bộ MỚI vào VN, không áp dụng cho bộ VN đã ra lâu (vd Nisekoi VN ra từ 2014 → vẫn track).",
+    "examples": {
+      "skip": ["Host Club trường Ouran (JP 2002-2010, VN mới thầu 2024-2026)"],
+      "keep": ["Nisekoi (JP 2011-2016, VN đã ra từ ~2014 → continuing license)"]
+    }
+  }
+}

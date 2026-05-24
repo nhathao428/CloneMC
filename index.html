@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LN Tracker - Personal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="data.js"></script>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+  .card { transition: all 0.15s ease; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(236,72,153,0.15); }
+  textarea { resize: vertical; }
+  .badge-wing { background: #f59e0b; }
+  .badge-ipm { background: #3b82f6; }
+  .badge-amak { background: #8b5cf6; }
+  .badge-thaiha { background: #ef4444; }
+  .badge-tsuki { background: #06b6d4; }
+  .badge-nhanam { background: #14b8a6; }
+  .badge-yen { background: #dc2626; }
+  .badge-sevenseas { background: #0891b2; }
+  .badge-tokyopop { background: #db2777; }
+  .badge-other { background: #6b7280; }
+  .pill-active { background: #ec4899 !important; color: white; }
+  details summary { cursor: pointer; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  .auto-tag { font-size: 9px; background: #065f46; color: #6ee7b7; padding: 1px 5px; border-radius: 3px; }
+  .manual-tag { font-size: 9px; background: #7c2d12; color: #fdba74; padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body class="bg-zinc-900 text-zinc-100 min-h-screen">
+
+<div class="max-w-6xl mx-auto p-4 sm:p-6">
+
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold text-pink-400">📚 LN + Manga Tracker</h1>
+    <p class="text-sm text-zinc-400 mt-1">Track LN/Manga/WN · romance / yuri (+ yuri-hint) / school / slice-of-life · hạn chế harem · <span id="last-update" class="text-pink-300"></span></p>
+  </header>
+
+  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5"></div>
+
+  <div class="bg-zinc-800 rounded-xl p-4 mb-5 space-y-3">
+    <div>
+      <label class="text-xs text-zinc-400 uppercase tracking-wide">Nhà xuất bản</label>
+      <div id="filter-publisher" class="flex flex-wrap gap-2 mt-1"></div>
+    </div>
+    <div>
+      <label class="text-xs text-zinc-400 uppercase tracking-wide">Thể loại</label>
+      <div id="filter-genre" class="flex flex-wrap gap-2 mt-1"></div>
+    </div>
+    <div>
+      <label class="text-xs text-zinc-400 uppercase tracking-wide">Format</label>
+      <div id="filter-format" class="flex flex-wrap gap-2 mt-1"></div>
+    </div>
+    <div>
+      <label class="text-xs text-zinc-400 uppercase tracking-wide">Trạng thái</label>
+      <div id="filter-status" class="flex flex-wrap gap-2 mt-1"></div>
+    </div>
+    <div class="flex gap-2 items-center pt-2 flex-wrap">
+      <input id="search" type="text" placeholder="🔍 Tìm tên bộ..."
+        class="flex-1 min-w-[200px] bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-500">
+      <label class="text-xs flex items-center gap-1 text-zinc-400">
+        <input id="sort-by-date" type="checkbox" class="accent-pink-500"> Sort theo ngày phát hành
+      </label>
+      <button onclick="toggleAddForm()" class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium">+ Thêm</button>
+      <button onclick="exportData()" class="bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded-lg text-sm" title="Export JSON">⬇ Export</button>
+    </div>
+  </div>
+
+  <div id="add-form" class="hidden bg-zinc-800 rounded-xl p-4 mb-5 border border-pink-500/30">
+    <h3 class="font-semibold mb-3 text-pink-400">Thêm bộ mới (manual)</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <input id="f-title" placeholder="Tên VN" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+      <input id="f-titleJp" placeholder="Tên JP" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+      <select id="f-publisher" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+        <option value="Wingbooks">Wingbooks</option>
+        <option value="IPM">IPM</option>
+        <option value="AMAK">AMAK</option>
+        <option value="Thái Hà">Thái Hà (Hikari)</option>
+        <option value="Tsuki">Tsuki</option>
+        <option value="Nhã Nam">Nhã Nam</option>
+        <option value="Yen Press">Yen Press (JP/EN)</option>
+        <option value="Seven Seas">Seven Seas (JP/EN)</option>
+        <option value="Tokyopop">Tokyopop (JP/EN)</option>
+        <option value="Khác">Khác</option>
+      </select>
+      <select id="f-status" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+        <option value="upcoming">Sắp ra</option>
+        <option value="ongoing">Đang ra</option>
+        <option value="completed">Hoàn thành</option>
+        <option value="rumored">Tin đồn</option>
+      </select>
+      <select id="f-format" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+        <option value="LN">Light Novel</option>
+        <option value="Manga">Manga</option>
+        <option value="WN">Web Novel</option>
+      </select>
+      <input id="f-volume" placeholder="Vol (vd: 5)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+      <input id="f-nextDate" placeholder="Ngày phát hành (vd: 2026-06-15)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm">
+      <input id="f-genres" placeholder="Genres (cách , vd: romance,yuri)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2">
+      <input id="f-sourceUrl" placeholder="Link nguồn (optional)" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2">
+      <textarea id="f-notes" placeholder="Ghi chú..." rows="2" class="bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm sm:col-span-2"></textarea>
+    </div>
+    <div class="flex gap-2 mt-3">
+      <button onclick="addEntry()" class="bg-pink-600 hover:bg-pink-700 px-4 py-2 rounded text-sm font-medium">Lưu</button>
+      <button onclick="toggleAddForm()" class="bg-zinc-700 hover:bg-zinc-600 px-4 py-2 rounded text-sm">Huỷ</button>
+    </div>
+  </div>
+
+  <div id="cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+  <footer class="mt-8 text-center text-xs text-zinc-500">
+    <span class="auto-tag">AUTO</span> data từ data.js (Claude update weekly) ·
+    <span class="manual-tag">MANUAL</span> bạn tự thêm (lưu localStorage)<br>
+    Không boylove · Có yuri · Focus romance
+  </footer>
+</div>
+
+<script>
+// ============ STATE ============
+const AUTO_DATA = (window.LN_DATA || []).map(d => ({...d, _source: "auto"}));
+const STORAGE = {
+  manual: "ln_tracker_manual_v2",
+  ideas: "ln_tracker_ideas_v2",
+  hidden: "ln_tracker_hidden_v2"
+};
+
+let manualData = JSON.parse(localStorage.getItem(STORAGE.manual) || "[]").map(d => ({...d, _source: "manual"}));
+let ideas = JSON.parse(localStorage.getItem(STORAGE.ideas) || "{}");
+let hidden = new Set(JSON.parse(localStorage.getItem(STORAGE.hidden) || "[]"));
+
+let filters = { publisher: "all", genre: "all", status: "all", format: "all", search: "", sortByDate: false };
+
+// Detect last update từ comment trong data.js (đọc qua fetch không CORS được khi file://, fallback: ngày max addedAt)
+const lastUpdate = AUTO_DATA.reduce((max, d) => (d.addedAt > max ? d.addedAt : max), "");
+document.getElementById("last-update").textContent = lastUpdate ? `data update: ${lastUpdate}` : "";
+
+function save() {
+  localStorage.setItem(STORAGE.manual, JSON.stringify(manualData.map(({_source, ...rest}) => rest)));
+  localStorage.setItem(STORAGE.ideas, JSON.stringify(ideas));
+  localStorage.setItem(STORAGE.hidden, JSON.stringify([...hidden]));
+}
+
+function allData() { return [...AUTO_DATA, ...manualData].filter(d => !hidden.has(d.id)); }
+
+// ============ HELPERS ============
+const pubBadge = p => ({ "Wingbooks": "badge-wing", "IPM": "badge-ipm", "AMAK": "badge-amak",
+  "Thái Hà": "badge-thaiha", "Tsuki": "badge-tsuki", "Nhã Nam": "badge-nhanam",
+  "Yen Press": "badge-yen", "Seven Seas": "badge-sevenseas", "Tokyopop": "badge-tokyopop" }[p] || "badge-other");
+const statusColor = s => ({ upcoming: "bg-green-500/20 text-green-300", ongoing: "bg-blue-500/20 text-blue-300",
+    completed: "bg-zinc-600/40 text-zinc-300", rumored: "bg-yellow-500/20 text-yellow-300" }[s] || "");
+const statusLabel = s => ({ upcoming: "Sắp ra", ongoing: "Đang ra", completed: "Hoàn thành", rumored: "Tin đồn" }[s] || s);
+const fmtPrice = p => p && p > 0 ? p.toLocaleString("vi-VN") + "đ" : "";
+
+// ============ FILTERS ============
+const PUBLISHERS = ["all", "Wingbooks", "IPM", "AMAK", "Thái Hà", "Tsuki", "Nhã Nam", "Yen Press", "Seven Seas", "Tokyopop", "Khác"];
+const VN_PUBLISHERS = ["Wingbooks", "IPM", "AMAK", "Thái Hà", "Tsuki", "Nhã Nam"];
+const JP_EN_PUBLISHERS = ["Yen Press", "Seven Seas", "Tokyopop"];
+const GENRES = ["all", "primary", "romance", "yuri", "yuri-hint", "school", "slice-of-life", "comedy", "drama", "fantasy", "isekai", "supernatural", "harem"];
+const PRIMARY_GENRES = ["romance", "yuri", "yuri-hint", "school", "slice-of-life"];
+const WARN_GENRES = ["ecchi", "harem", "reverse-harem"];
+const STATUSES = ["all", "upcoming", "ongoing", "completed", "rumored"];
+const FORMATS = ["all", "LN", "Manga", "WN"];
+
+function renderFilters() {
+  const genreLabel = v => v === "all" ? "Tất cả" : v === "primary" ? "💕 Ưu tiên (romance/yuri/school/slice-of-life)" : v;
+  const make = (id, list, key, labelFn) => {
+    document.getElementById(id).innerHTML = list.map(v => {
+      const isHot = key === "genre" && v === "primary";
+      return `<button onclick="setFilter('${key}','${v}')" class="px-3 py-1 rounded-full text-xs ${isHot?'bg-pink-700':'bg-zinc-700'} hover:bg-zinc-600 ${filters[key]===v?'pill-active':''}">${labelFn(v)}</button>`;
+    }).join("");
+  };
+  make("filter-publisher", PUBLISHERS, "publisher", v => v === "all" ? "Tất cả" : v);
+  make("filter-genre", GENRES, "genre", genreLabel);
+  make("filter-format", FORMATS, "format", v => v === "all" ? "Tất cả" : v);
+  make("filter-status", STATUSES, "status", v => v === "all" ? "Tất cả" : statusLabel(v));
+}
+
+function setFilter(k, v) { filters[k] = v; renderFilters(); renderCards(); }
+
+document.getElementById("search").addEventListener("input", e => {
+  filters.search = e.target.value.toLowerCase(); renderCards();
+});
+document.getElementById("sort-by-date").addEventListener("change", e => {
+  filters.sortByDate = e.target.checked; renderCards();
+});
+
+// ============ STATS ============
+function renderStats() {
+  const all = allData();
+  const byPub = {};
+  all.forEach(d => byPub[d.publisher] = (byPub[d.publisher]||0)+1);
+  const upcoming = all.filter(d => d.status === "upcoming").length;
+  document.getElementById("stats").innerHTML = `
+    <div class="bg-zinc-800 rounded-lg p-3"><div class="text-2xl font-bold text-pink-400">${all.length}</div><div class="text-xs text-zinc-400">Tổng bộ</div></div>
+    <div class="bg-zinc-800 rounded-lg p-3"><div class="text-2xl font-bold text-green-400">${upcoming}</div><div class="text-xs text-zinc-400">Sắp ra</div></div>
+    <div class="bg-zinc-800 rounded-lg p-3"><div class="text-2xl font-bold text-amber-400">${byPub['Wingbooks']||0}</div><div class="text-xs text-zinc-400">Wingbooks</div></div>
+    <div class="bg-zinc-800 rounded-lg p-3"><div class="text-2xl font-bold text-blue-400">${byPub['IPM']||0}</div><div class="text-xs text-zinc-400">IPM</div></div>
+  `;
+}
+
+// ============ CARDS ============
+function renderCards() {
+  let filtered = allData().filter(d => {
+    if (filters.publisher !== "all" && d.publisher !== filters.publisher) return false;
+    if (filters.genre === "primary") {
+      if (!(d.genres||[]).some(g => PRIMARY_GENRES.includes(g))) return false;
+    } else if (filters.genre !== "all" && !(d.genres||[]).includes(filters.genre)) return false;
+    if (filters.status !== "all" && d.status !== filters.status) return false;
+    if (filters.format !== "all" && (d.format || "LN") !== filters.format) return false;
+    if (filters.search && !((d.title||"").toLowerCase().includes(filters.search) || (d.titleJp||"").toLowerCase().includes(filters.search))) return false;
+    if ((d.genres||[]).includes("bl") || (d.genres||[]).includes("boylove")) return false;
+    return true;
+  });
+  if (filters.sortByDate) {
+    filtered.sort((a, b) => {
+      const da = (a.nextDate||"").replace(/[^0-9-]/g, "") || "9999";
+      const db = (b.nextDate||"").replace(/[^0-9-]/g, "") || "9999";
+      return da.localeCompare(db);
+    });
+  }
+  if (filtered.length === 0) {
+    document.getElementById("cards").innerHTML = `<div class="col-span-2 text-center py-12 text-zinc-500">Không có bộ nào khớp filter.</div>`;
+    return;
+  }
+  document.getElementById("cards").innerHTML = filtered.map(d => `
+    <div class="card bg-zinc-800 rounded-xl p-4 border border-zinc-700">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1 flex-wrap">
+            <span class="${d._source==='auto'?'auto-tag':'manual-tag'}">${d._source.toUpperCase()}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded ${(d.format||'LN')==='Manga'?'bg-purple-900 text-purple-200':(d.format||'LN')==='WN'?'bg-sky-900 text-sky-200':'bg-emerald-900 text-emerald-200'}">${d.format||'LN'}</span>
+            ${d.volume ? `<span class="text-xs text-zinc-500">Vol ${d.volume}</span>` : ""}
+            ${WARN_GENRES.filter(w => (d.genres||[]).includes(w)).map(w => `<span class="text-xs px-1.5 py-0.5 rounded bg-orange-900 text-orange-200" title="Hạn chế">⚠ ${w}</span>`).join("")}
+          </div>
+          <h3 class="font-bold text-lg leading-tight">${d.title}</h3>
+          ${d.titleJp ? `<div class="text-xs text-zinc-500 italic">${d.titleJp}</div>` : ""}
+        </div>
+        <span class="${pubBadge(d.publisher)} text-white text-xs px-2 py-1 rounded font-medium whitespace-nowrap">${d.publisher}</span>
+      </div>
+
+      <div class="flex flex-wrap gap-1.5 mb-2">
+        <span class="${statusColor(d.status)} text-xs px-2 py-0.5 rounded">${statusLabel(d.status)}</span>
+        ${(d.genres||[]).map(g => `<span class="bg-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded">${g}</span>`).join("")}
+      </div>
+
+      <div class="text-sm text-zinc-300 space-y-1">
+        <div>
+          <span class="text-zinc-500">Phát hành:</span>
+          <span class="text-pink-300 font-medium">${d.nextDate || "?"}</span>
+          ${fmtPrice(d.price) ? `<span class="text-zinc-500 ml-2">${fmtPrice(d.price)}</span>` : ""}
+        </div>
+        ${d.notes ? `<div class="text-xs text-zinc-400 mt-2 italic">${d.notes}</div>` : ""}
+        ${d.sourceUrl ? `<a href="${d.sourceUrl}" target="_blank" class="text-xs text-blue-400 hover:underline">→ Nguồn</a>` : ""}
+      </div>
+
+      <details class="mt-3">
+        <summary class="text-xs text-pink-400 hover:text-pink-300 font-medium">💡 Idea TikTok</summary>
+        <textarea
+          onchange="saveIdea('${d.id}', this.value)"
+          placeholder="Hook · angle · sound · hashtag..."
+          class="w-full mt-2 bg-zinc-900 border border-zinc-700 rounded p-2 text-xs text-zinc-200"
+          rows="3">${(ideas[d.id] || "").replace(/</g, "&lt;")}</textarea>
+        ${d._source === 'auto' ? `<button onclick="genCaption('${d.id}')" class="mt-2 text-xs bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded">📋 Copy caption Aitoearn</button>` : ""}
+      </details>
+
+      <div class="flex gap-2 mt-3 text-xs">
+        ${d._source === 'manual' ? `<button onclick="deleteManual('${d.id}')" class="text-zinc-400 hover:text-red-400">🗑 Xoá</button>` : `<button onclick="hideAuto('${d.id}')" class="text-zinc-400 hover:text-red-400">🙈 Ẩn</button>`}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ============ ACTIONS ============
+function saveIdea(id, val) { ideas[id] = val; save(); }
+
+function genCaption(id) {
+  const d = allData().find(x => x.id === id); if (!d) return;
+  const caption = `📚 ${d.title}${d.volume ? ` - Tập ${d.volume}` : ""}\n` +
+    `${d.publisher} · ${d.nextDate || "sắp ra"}${fmtPrice(d.price) ? ` · ${fmtPrice(d.price)}` : ""}\n\n` +
+    `${d.notes || ""}\n\n` +
+    `Credit: ${d.publisher}\n` +
+    `Link mua: [chèn link]\n` +
+    `#lightnovel #manga #${(d.genres||[]).join(" #")} #${d.publisher.toLowerCase()}`;
+  navigator.clipboard.writeText(caption).then(() => alert("Đã copy caption!"));
+}
+
+function toggleAddForm() { document.getElementById("add-form").classList.toggle("hidden"); }
+
+function addEntry() {
+  const get = id => document.getElementById(id).value.trim();
+  const title = get("f-title");
+  if (!title) { alert("Cần tên bộ"); return; }
+  const entry = {
+    id: "manual-" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 30) + "-" + Date.now().toString(36),
+    title, titleJp: get("f-titleJp"),
+    publisher: get("f-publisher"), status: get("f-status"),
+    format: get("f-format") || "LN",
+    volume: get("f-volume"), nextDate: get("f-nextDate"),
+    genres: get("f-genres").split(",").map(s => s.trim()).filter(Boolean),
+    sourceUrl: get("f-sourceUrl"), notes: get("f-notes"),
+    addedAt: new Date().toISOString().slice(0,10), _source: "manual"
+  };
+  manualData.unshift(entry);
+  save();
+  ["f-title","f-titleJp","f-volume","f-nextDate","f-genres","f-sourceUrl","f-notes"].forEach(i => document.getElementById(i).value = "");
+  toggleAddForm();
+  renderAll();
+}
+
+function deleteManual(id) {
+  if (!confirm("Xoá bộ này?")) return;
+  manualData = manualData.filter(d => d.id !== id);
+  delete ideas[id];
+  save(); renderAll();
+}
+
+function hideAuto(id) {
+  if (!confirm("Ẩn bộ này khỏi hiển thị? (vẫn còn trong data.js, sẽ ẩn cho đến khi unhide)")) return;
+  hidden.add(id); save(); renderAll();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify({autoData: AUTO_DATA, manualData, ideas, hidden: [...hidden]}, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `ln-tracker-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function renderAll() { renderStats(); renderFilters(); renderCards(); }
+renderAll();
+</script>
+
+</body>
+</html>
