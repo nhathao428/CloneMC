@@ -12,6 +12,10 @@ Minecraft-inspired voxel sandbox chạy trực tiếp trên trình duyệt. Vi�
 
 ## Chơi thử
 
+**Online:** https://nhathao428.github.io/CloneMC/
+
+Hoặc chạy local:
+
 ```bash
 # cần một static server bất kỳ (ES modules không chạy qua file://)
 cd CloneMC
