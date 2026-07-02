@@ -9,6 +9,7 @@ import { raycastVoxel } from './raycast.js';
 import { Sky } from './sky.js';
 import { UI } from './ui.js';
 import { Sfx } from './audio.js';
+import { Hand } from './hand.js';
 
 const SAVE_KEY = 'clonemc-save-v1';
 const VIEW_DIST = 4 * CHUNK;
@@ -63,6 +64,7 @@ const world = new World(scene, gen, materials, save?.edits ?? {});
 const sky = new Sky(scene, VIEW_DIST);
 const ui = new UI(atlas, scene);
 const sfx = new Sfx();
+const hand = new Hand(atlas, window.innerWidth / window.innerHeight);
 
 // ---------- player ----------
 function spawnPlayer() {
@@ -123,6 +125,7 @@ document.addEventListener('contextmenu', (e) => e.preventDefault());
 
 document.addEventListener('mousedown', (e) => {
   if (!locked) return;
+  hand.swing();
   const hit = raycastVoxel(world, { x: player.pos.x, y: player.eyeY, z: player.pos.z }, player.lookDir(), REACH);
   if (!hit) return;
 
@@ -158,6 +161,7 @@ function remeshNow([x, , z]) {
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  hand.onResize(camera.aspect);
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 window.addEventListener('beforeunload', persist);
@@ -210,6 +214,14 @@ function frame() {
     + ` | chunks ${world.countMeshedChunks()}${player.fly ? ' | FLY' : ''}`,
   );
 
+  hand.setBlock(ui.currentBlock);
+  const moving = locked && ['KeyW', 'KeyA', 'KeyS', 'KeyD'].some((k) => keys.has(k));
+  hand.update(dt, moving);
+
+  renderer.clear();
   renderer.render(scene, camera);
+  hand.render(renderer);
 }
+
+renderer.autoClear = false;
 frame();

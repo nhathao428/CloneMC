@@ -72,9 +72,10 @@ export class Player {
     if (keys.has('KeyD')) ix += 1;
     const len = Math.hypot(ix, iz);
     if (len > 0) { ix /= len; iz /= len; }
+    // rotate local input (x right, -z forward) into world space by yaw
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
-    const wx = ix * cos - iz * sin;
-    const wz = ix * sin + iz * cos;
+    const wx = ix * cos + iz * sin;
+    const wz = -ix * sin + iz * cos;
 
     const speed = this.fly ? FLY_SPEED
       : this.inWater ? SWIM_SPEED
