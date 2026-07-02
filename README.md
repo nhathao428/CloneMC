@@ -1,30 +1,65 @@
-# LN + Manga Tracker
+# CloneMC
 
-Personal tracker theo dõi LN/Manga/WN release từ các nxb VN + JP/EN, focus romance/yuri/school/slice-of-life.
+Minecraft-inspired voxel sandbox chạy trực tiếp trên trình duyệt. Viết bằng JavaScript thuần + Three.js, không có build step, không dùng asset ngoài (texture pixel được vẽ procedural bằng canvas).
 
-## Files
+> Dự án phi thương mại, làm để học/demo. Không liên quan tới Mojang/Microsoft.
 
-- `index.html` — UI, mở bằng browser local
-- `data.js` — data (auto-updated weekly bởi remote agent)
-- `sources.json` — config: URL sources, blacklists, rules
-- `UPDATE_PROMPT.md` — prompt cho remote agent
-- `UPDATE.md` — hướng dẫn manual update
+![Terrain](shots/hero.png)
 
-## Workflow
+| Xây dựng | Ban đêm |
+|---|---|
+| ![Building](shots/wall.png) | ![Night](shots/night.png) |
 
-1. **Remote agent** chạy weekly (Monday Saigon time), fetch sources, parse, commit + push
-2. **Local user** pull về:
-   ```bash
-   cd C:/Users/Admin/ln-tracker
-   git pull
-   ```
-   rồi mở `index.html` xem bộ mới
+## Chơi thử
 
-## Genre rules (xem sources.json)
+```bash
+# cần một static server bất kỳ (ES modules không chạy qua file://)
+cd CloneMC
+python -m http.server 8000
+# hoặc: npx serve
+```
 
-- **Bắt buộc**: romance OR yuri OR yuri-hint
-- **Primary**: romance, yuri, yuri-hint, school, slice-of-life
-- **Warning ⚠**: ecchi, harem, reverse-harem (vẫn add, tag warning)
-- **Cấm**: BL/yaoi, webtoon/manhwa/manhua
-- **Age cutoff**: skip bộ JP < 2016 mà VN mới thầu
-- **Blacklist titles**: Classroom of the Elite, Mushoku Tensei
+Mở `http://localhost:8000` và bấm **Chơi**.
+
+## Tính năng
+
+- **Terrain procedural vô hạn** — đồi, núi, biển, bãi cát, hang động (3D noise), cây mọc tự nhiên (xuyên biên chunk không bị cụt)
+- **Đào / đặt block** — raycast DDA, 12 loại block, hotbar 9 ô, middle-click để pick block
+- **Vật lý** — AABB collision, nhảy, chạy nhanh, bơi (chìm/nổi trong nước), chế độ bay
+- **Render** — chunk meshing có face culling + baked ambient occlusion per-vertex, nước trong suốt, lá cây cutout
+- **Chu kỳ ngày đêm** — mặt trời xoay, màu trời/sương mù chuyển dần, hoàng hôn
+- **Lưu world** — mọi block đã sửa + vị trí player lưu vào localStorage, seed cố định
+- **Âm thanh** — SFX đào/đặt sinh bằng WebAudio, không cần file âm thanh
+
+## Điều khiển
+
+| Phím | Hành động |
+|------|-----------|
+| WASD | Di chuyển |
+| Space | Nhảy / bơi lên / bay lên |
+| Ctrl | Chạy nhanh |
+| F | Bật/tắt bay |
+| Shift | Hạ xuống (khi bay) |
+| Chuột trái / phải / giữa | Đào / đặt / pick block |
+| 1–9, lăn chuột | Đổi block trên hotbar |
+| R | Về spawn |
+| Esc | Tạm dừng |
+
+## Cấu trúc code
+
+```
+index.html        UI shell + importmap
+lib/              three.js (vendored, chạy offline được)
+src/
+  noise.js        value noise 2D/3D + fBm, seeded
+  blocks.js       block registry + texture atlas vẽ bằng canvas
+  worldgen.js     sinh terrain, hang động, cây
+  world.js        quản lý chunk: stream in/out, edit, persistence
+  mesher.js       dựng geometry: face culling + vertex AO
+  raycast.js      voxel raycast (Amanatides & Woo)
+  player.js       physics + collision + swim/fly
+  sky.js          chu kỳ ngày đêm
+  ui.js           hotbar, highlight block, HUD
+  audio.js        SFX bằng WebAudio
+  main.js         entry point, game loop, input
+```
